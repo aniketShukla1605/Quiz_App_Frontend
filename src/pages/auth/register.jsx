@@ -30,7 +30,7 @@ export default function RegisterPage() {
         alignItems: "center", justifyContent: "center",
         background: "var(--bg)", padding: 24, position: "relative", overflow: "hidden",
       }}
-    >
+    > 
       <div
         style={{
           position: "absolute", top: "10%", left: "50%",

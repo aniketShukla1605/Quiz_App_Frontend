@@ -41,7 +41,7 @@ function ScoreBar({ pct }) {
 }
 
 export default function Leaderboard() {
-  const [quizId, setQuizId] = useState("");
+  const [title, setTitle] = useState("");
   const [limit, setLimit] = useState(10);
   const [entries, setEntries] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -50,15 +50,15 @@ export default function Leaderboard() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!quizId.trim() || isNaN(Number(quizId))) {
-      setError("Please enter a valid quiz ID.");
+    if (!title.trim()) {
+      setError("Please enter a quiz title.");
       return;
     }
     setError("");
     setLoading(true);
     setSearched(true);
     try {
-      const res = await getLeaderboard(quizId, limit);
+      const res = await getLeaderboard(title, limit);
       setEntries(res.data || []);
     } catch (err) {
       if (err.response?.status === 404) {
@@ -88,14 +88,13 @@ export default function Leaderboard() {
       <div className="card" style={{ padding: 28, marginBottom: 28 }}>
         <form onSubmit={handleSearch} style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 160 }}>
-            <label className="input-label">Quiz ID</label>
+            <label className="input-label">Quiz Title</label>
             <input
               className="input"
-              type="number"
-              min="1"
-              placeholder="e.g. 42"
-              value={quizId}
-              onChange={(e) => { setQuizId(e.target.value); setError(""); }}
+              type="text"
+              placeholder="e.g. Java Basics"
+              value={title}
+              onChange={(e) => { setTitle(e.target.value); setError(""); }}
             />
           </div>
           <div style={{ minWidth: 120 }}>
@@ -139,7 +138,7 @@ export default function Leaderboard() {
             No results yet
           </h2>
           <p style={{ color: "var(--text-2)", fontSize: 14 }}>
-            No one has completed Quiz #{quizId} yet, or the quiz doesn't exist.
+           No one has completed "{title}" yet, or the quiz doesn't exist.
           </p>
         </div>
       )}
@@ -149,7 +148,7 @@ export default function Leaderboard() {
         <div className="card" style={{ padding: 48, textAlign: "center" }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>🏆</div>
           <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 20, marginBottom: 8 }}>
-            Enter a Quiz ID to see rankings
+            Enter a Quiz Title to see rankings
           </h2>
           <p style={{ color: "var(--text-2)", fontSize: 14 }}>
             Type a quiz ID above and click "View Rankings" to see who topped the charts.
@@ -163,7 +162,7 @@ export default function Leaderboard() {
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 18 }}>
-              Quiz #{quizId} — Top {entries.length}
+              {title} — Top {entries.length}
             </h2>
             <span style={{ fontSize: 13, color: "var(--text-3)" }}>
               {entries.length} participant{entries.length !== 1 ? "s" : ""}
@@ -206,7 +205,7 @@ export default function Leaderboard() {
                     >
                       <div style={{ fontSize: 28 }}>{MEDALS[realRank - 1]}</div>
                       <div style={{ fontSize: 12, color: "var(--text-3)", fontFamily: "Syne, sans-serif", fontWeight: 600 }}>
-                        {entry.studentId?.slice(0, 8)}…
+                        {entry.displayName || "Unknown"}
                       </div>
                       <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 20, color: c.text }}>
                         {entry.score}/{entry.maxScore}
@@ -236,7 +235,7 @@ export default function Leaderboard() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    {["Rank", "Student ID", "Score", "Percentage", "Submitted", "Method"].map((h) => (
+                    {["Rank", "Student Name", "Score", "Percentage", "Submitted", "Method"].map((h) => (
                       <th
                         key={h}
                         style={{
@@ -279,8 +278,8 @@ export default function Leaderboard() {
                           <RankBadge rank={entry.rank} />
                         </td>
                         <td style={{ padding: "14px 16px" }}>
-                          <span style={{ fontSize: 12, fontFamily: "monospace", color: "var(--text-2)" }}>
-                            {entry.studentId?.slice(0, 13)}…
+                          <span style={{ fontSize: 13, color: "var(--text-2)" }}>
+                            {entry.displayName || "Unknown"}
                           </span>
                         </td>
                         <td style={{ padding: "14px 16px" }}>

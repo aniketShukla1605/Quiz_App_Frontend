@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
+import { googleLogin } from "../../services/authService";
 import Loader from "../../components/common/Loader";
 
 export default function LoginPage() {
@@ -10,6 +12,21 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleLogin = async (credentialResponse) => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await googleLogin({ idToken: credentialResponse.credential });
+      ctxLogin({ role: res.data.role, email: res.data.email });
+      if (res.data.role === "TEACHER") navigate("/teacher/dashboard");
+      else navigate("/student/dashboard");
+    } catch (err) {
+      setError(err.response?.data || "Google login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -123,7 +140,20 @@ export default function LoginPage() {
             >
               {loading ? <Loader size="sm" /> : "Sign In"}
             </button>
+
+            <div style={{ margin: "16px 0", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>or</div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => setError("Google login failed. Please try again.")}
+                theme="filled_black"
+                shape="rectangular"
+                size="large"
+                width="320"
+              />
+            </div>
           </form>
+
 
           <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--text-2)" }}>
             Don't have an account?{" "}

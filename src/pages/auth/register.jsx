@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "../../services/authService";
+import { GoogleLogin } from "@react-oauth/google";
+import { googleLogin } from "../../services/authService";
 import Loader from "../../components/common/Loader";
 
 export default function RegisterPage() {
@@ -8,6 +10,20 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ email: "", password: "", role: "STUDENT" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+
+  const handleGoogleRegister = async (credentialResponse) => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await googleLogin({ idToken: credentialResponse.credential, role: form.role });
+      navigate("/login");
+    } catch (err) {
+      setError(err.response?.data || "Google registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +46,7 @@ export default function RegisterPage() {
         alignItems: "center", justifyContent: "center",
         background: "var(--bg)", padding: 24, position: "relative", overflow: "hidden",
       }}
-    > 
+    >
       <div
         style={{
           position: "absolute", top: "10%", left: "50%",
@@ -96,6 +112,18 @@ export default function RegisterPage() {
             <button type="submit" className="btn btn-primary btn-lg" style={{ marginTop: 8, width: "100%" }} disabled={loading}>
               {loading ? <Loader size="sm" /> : "Create Account"}
             </button>
+
+            <div style={{ margin: "16px 0", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>or</div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <GoogleLogin
+                onSuccess={handleGoogleRegister}
+                onError={() => setError("Google registration failed. Please try again.")}
+                theme="filled_black"
+                shape="rectangular"
+                size="large"
+                width="320"
+              />
+            </div>
           </form>
 
           <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--text-2)" }}>

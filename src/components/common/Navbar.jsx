@@ -63,7 +63,11 @@ export default function Navbar({ onMenuClick }) {
               fontSize: 15,
             }}
           >
-            ⚡
+            <img
+              src="../../assets/react.svg"
+              alt="Logo"
+              style={{ width: 18, height: 18, objectFit: "contain" }}
+            />
           </div>
           <span
             style={{

@@ -41,7 +41,8 @@ export default function QuizInstructions() {
 
       {error && (
         <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "12px 16px", color: "var(--red)", fontSize: 14, marginBottom: 24 }}>
-          ⚠ {error}
+          <img src="src/assets/warning.png" alt="Error" style={{ marginRight: 8 }} />
+          {error}
         </div>
       )}
 
@@ -49,7 +50,7 @@ export default function QuizInstructions() {
         <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 18, marginBottom: 24 }}>📋 Instructions</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {[
-            { icon: "⏱️", title: "Timed Quiz", desc: "The quiz has a time limit. It will be auto-submitted when time expires." },
+            { icon: "⏱", title: "Timed Quiz", desc: "The quiz has a time limit. It will be auto-submitted when time expires." },
             { icon: "✅", title: "One Attempt", desc: "You can only attempt each quiz once. Make sure you're ready before starting." },
             { icon: "💾", title: "Auto-Sync", desc: "Your answers are synced to the server periodically so you won't lose progress." },
             { icon: "📶", title: "Stay Connected", desc: "If you lose connection, the quiz may be auto-submitted when you reconnect." },
@@ -68,7 +69,7 @@ export default function QuizInstructions() {
 
       <div style={{ padding: "16px 20px", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 10, marginBottom: 28 }}>
         <p style={{ fontSize: 13, color: "var(--amber)", display: "flex", alignItems: "center", gap: 8 }}>
-          <span>⚠️</span>
+          <img src="src/assets/warning.png" alt="Warning" />
           <span>Once you click "Start Quiz", the timer begins immediately. Are you ready?</span>
         </p>
       </div>
@@ -76,7 +77,7 @@ export default function QuizInstructions() {
       <div className="flex gap-3">
         <button onClick={() => navigate(-1)} className="btn btn-ghost btn-lg">Not yet</button>
         <button onClick={handleStart} className="btn btn-primary btn-lg" disabled={starting} style={{ flex: 1 }}>
-          {starting ? <Loader size="sm" /> : "🚀 Start Quiz"}
+          {starting ? <Loader size="sm" /> : " Start Quiz"}
         </button>
       </div>
     </div>

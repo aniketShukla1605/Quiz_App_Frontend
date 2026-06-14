@@ -78,7 +78,7 @@ export default function HistoryPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="card" style={{ padding: 56, textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+          <div style={{ fontSize: 48, marginBottom: 12 }}><img src="src/assets/database.png"/></div>
           <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>No attempts yet</h2>
           <p style={{ color: "var(--text-2)", marginBottom: 24, fontSize: 14 }}>Take your first quiz to see your history here.</p>
           <Link to="/student/quizzes" className="btn btn-primary">Take a Quiz →</Link>

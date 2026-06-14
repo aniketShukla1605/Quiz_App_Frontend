@@ -64,7 +64,7 @@ export default function Navbar({ onMenuClick }) {
             }}
           >
             <img
-              src="../../assets/react.svg"
+              src="../../assets/logo.png"
               alt="Logo"
               style={{ width: 18, height: 18, objectFit: "contain" }}
             />

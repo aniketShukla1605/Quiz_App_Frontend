@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 
 const features = [
-  { icon: "⚡", title: "Instant Quizzes", desc: "Create and deploy quizzes in seconds with our intuitive interface." },
-  { icon: "📊", title: "Live Analytics", desc: "Track performance, scores, and trends with beautiful dashboards." },
-  { icon: "🏆", title: "Leaderboards", desc: "Foster healthy competition with real-time rankings and scores." },
-  { icon: "🔒", title: "Secure Auth", desc: "JWT-based authentication with refresh tokens and Google OAuth." },
-  { icon: "⏱️", title: "Timed Quizzes", desc: "Set custom durations with auto-submission when time expires." },
-  { icon: "🎯", title: "Smart Scoring", desc: "Automatic grading with detailed result breakdowns." },
+  { icon: "src/assets/lightning.png", title: "Instant Quizzes", desc: "Create and deploy quizzes in seconds with our intuitive interface." },
+  { icon: "src/assets/data-analytics.png", title: "Live Analytics", desc: "Track performance, scores, and trends with beautiful dashboards." },
+  { icon: "src/assets/podium.png", title: "Leaderboards", desc: "Foster healthy competition with real-time rankings and scores." },
+  { icon: "src/assets/secure.png", title: "Secure Auth", desc: "JWT-based authentication with refresh tokens and Google OAuth." },
+  { icon: "src/assets/timer.png", title: "Timed Quizzes", desc: "Set custom durations with auto-submission when time expires." },
+  { icon: "src/assets/score.png", title: "Smart Scoring", desc: "Automatic grading with detailed result breakdowns." },
 ];
 
 export default function LandingPage() {
@@ -15,7 +15,7 @@ export default function LandingPage() {
       {/* Header */}
       <header style={{ padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, zIndex: 10, background: "rgba(10,10,15,0.9)", backdropFilter: "blur(20px)" }}>
         <div className="flex items-center gap-2">
-          <div style={{ width: 36, height: 36, background: "var(--accent)", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⚡</div>
+          <div style={{ width: 50, height: 50, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}><img src="src\assets\logo.png" alt="QuizApp Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></div>
           <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em" }}>QuizApp</span>
         </div>
         <div className="flex items-center gap-3">
@@ -29,7 +29,7 @@ export default function LandingPage() {
         <div style={{ position: "absolute", top: "0%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,92,252,0.1) 0%, transparent 70%)", pointerEvents: "none" }} />
 
         <div className="badge badge-accent" style={{ marginBottom: 20, display: "inline-flex" }}>
-          🚀 Now with real-time sync & auto-submit
+          Now with real-time sync & auto-submit
         </div>
         <h1
           style={{
@@ -79,7 +79,7 @@ export default function LandingPage() {
                 animation: `fadeUp 0.4s ease ${i * 0.07}s both`,
               }}
             >
-              <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
+              <div style={{ fontSize: 28, marginBottom: 12 }}><img src={f.icon} alt={f.title} style={{ width: 48, height: 48 }} /></div>
               <h3 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{f.title}</h3>
               <p style={{ color: "var(--text-2)", fontSize: 14, lineHeight: 1.6 }}>{f.desc}</p>
             </div>

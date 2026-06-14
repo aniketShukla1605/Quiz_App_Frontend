@@ -41,7 +41,7 @@ export default function StudentDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <p style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 4 }}>{greeting} 👋</p>
+          <p style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 4 }}>{greeting} </p>
           <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 32, letterSpacing: "-0.02em" }}>
             {profile?.displayName || "Student"}
           </h1>

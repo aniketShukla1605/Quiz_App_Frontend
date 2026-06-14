@@ -50,7 +50,7 @@ export default function QuizList() {
 
       <div className="card" style={{ padding: 24 }}>
         <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 16, color: "var(--text-2)" }}>
-          💡 How it works
+           How it works
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[

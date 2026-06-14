@@ -49,11 +49,11 @@ export default function ResultPage() {
     ? Math.round((result.score / result.maxScore) * 100)
     : result?.percentage || 0;
 
-  const grade = pct >= 90 ? { label: "Excellent", color: "var(--green)", icon: "🏆" }
-    : pct >= 75 ? { label: "Great", color: "var(--cyan)", icon: "🌟" }
-    : pct >= 60 ? { label: "Good", color: "var(--accent-2)", icon: "👍" }
-    : pct >= 40 ? { label: "Fair", color: "var(--amber)", icon: "📚" }
-    : { label: "Keep Trying", color: "var(--red)", icon: "💪" };
+  const grade = pct >= 90 ? { label: "Excellent", color: "var(--green)", icon: "src/assets/trophy.png" }
+    : pct >= 75 ? { label: "Great", color: "var(--cyan)", icon: "src/assets/star.png" }
+    : pct >= 60 ? { label: "Good", color: "var(--accent-2)", icon: "src/assets/like.png" }
+    : pct >= 40 ? { label: "Fair", color: "var(--amber)", icon: "src/assets/check.png" }
+    : { label: "Keep Trying", color: "var(--red)", icon: "src/assets/ambition.png" };
 
   const circleR = 54;
   const circumference = 2 * Math.PI * circleR;
@@ -70,7 +70,7 @@ export default function ResultPage() {
 
       {error ? (
         <div className="card" style={{ padding: 32, textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>😕</div>
+          <div style={{ fontSize: 48, marginBottom: 12 }}><img src="src/assets/warning.png" alt="Error" /></div>
           <p style={{ color: "var(--text-2)", marginBottom: 20 }}>{error}</p>
           <div className="flex justify-center gap-3">
             <button onClick={() => window.location.reload()} className="btn btn-ghost">Retry</button>
@@ -99,7 +99,7 @@ export default function ResultPage() {
                 position: "absolute", inset: 0, display: "flex",
                 flexDirection: "column", alignItems: "center", justifyContent: "center",
               }}>
-                <span style={{ fontSize: 28, }}>{grade.icon}</span>
+                <span style={{ fontSize: 28, }}><img src={grade.icon} alt={grade.label} /></span>
                 <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 24, color: grade.color, lineHeight: 1 }}>
                   {pct}%
                 </span>

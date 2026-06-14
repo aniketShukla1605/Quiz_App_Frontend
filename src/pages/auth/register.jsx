@@ -103,7 +103,7 @@ export default function RegisterPage() {
                       transition: "all 0.18s",
                     }}
                   >
-                    {r === "STUDENT" ? "🎓 Student" : "👨‍🏫 Teacher"}
+                    {r === "STUDENT" ? " Student" : " Teacher"}
                   </button>
                 ))}
               </div>

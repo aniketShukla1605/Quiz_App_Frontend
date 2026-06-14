@@ -165,7 +165,7 @@ export default function QuizPage() {
   if (loading) return <Loader fullPage />;
   if (error) return (
     <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center" }}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>😕</div>
+      <div style={{ fontSize: 48, marginBottom: 16 }}><img src="src/assets/warning.png" alt="Error" /></div>
       <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, marginBottom: 12 }}>Something went wrong</h2>
       <p style={{ color: "var(--text-2)", marginBottom: 24 }}>{error}</p>
       <button onClick={() => navigate(-1)} className="btn btn-ghost">← Go back</button>

@@ -14,3 +14,9 @@ export const refresh = () =>
 
 export const googleLogin = (data) =>
   api.post("/auth/google", data);
+
+export const verifyEmail = (token) =>
+  api.get("/auth/verify-email", { params: { token } });
+ 
+export const resendVerification = (email) =>
+  api.post("/auth/resend-verification", { email });

@@ -1,11 +1,12 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+
 // Layouts
 import MainLayout from "../layout/MainLayout";
 import DashboardLayout from "../layout/DashboardLayout";
 
-// Guards
+// Protected
 import ProtectedRoute from "../components/common/ProtectedRoutes";
 
 // Public pages
@@ -13,6 +14,7 @@ import LandingPage from "../pages/shared/LandingPage";
 import LoginPage from "../pages/auth/login";
 import RegisterPage from "../pages/auth/register";
 import NotFound from "../pages/shared/NotFound";
+import VerifyEmail from "../pages/auth/VerifyEmail";
 
 // Shared protected
 import ProfilePage from "../pages/shared/ProfilePage";
@@ -50,6 +52,7 @@ export default function AppRoutes() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
       </Route>
 
       {/* Protected shared */}

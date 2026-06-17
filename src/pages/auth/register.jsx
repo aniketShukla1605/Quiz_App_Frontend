@@ -10,13 +10,14 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ email: "", password: "", role: "STUDENT" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
 
   const handleGoogleRegister = async (credentialResponse) => {
     setError("");
     setLoading(true);
     try {
-      const res = await googleLogin({ idToken: credentialResponse.credential, role: form.role });
+      await googleLogin({ idToken: credentialResponse.credential, role: form.role });
       navigate("/login");
     } catch (err) {
       setError(err.response?.data || "Google registration failed. Please try again.");
@@ -31,7 +32,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
-      navigate("/login");
+      setRegistered(true);
     } catch (err) {
       setError(err.response?.data || "Registration failed. Please try again.");
     } finally {
@@ -64,72 +65,90 @@ export default function RegisterPage() {
         </div>
 
         <div className="card" style={{ padding: 32 }}>
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Create account</h1>
-          <p style={{ color: "var(--text-2)", fontSize: 14, marginBottom: 28 }}>Join and start your quiz journey</p>
-
-          {error && (
-            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "var(--red)", fontSize: 13, marginBottom: 20 }}>
-              {error}
+          {registered ? (
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>📧</div>
+              <h1 style={{ fontFamily: "Syne, sans-serif", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
+                Check your inbox
+              </h1>
+              <p style={{ color: "var(--text-2)", fontSize: 14, marginBottom: 24 }}>
+                We've sent a verification link to <strong>{form.email}</strong>.
+                Click the link to activate your account, then sign in.
+              </p>
+              <Link to="/login" className="btn btn-primary btn-lg" style={{ width: "100%" }}>
+                Go to Sign In
+              </Link>
             </div>
+          ) : (
+            <>
+              <h1 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Create account</h1>
+              <p style={{ color: "var(--text-2)", fontSize: 14, marginBottom: 28 }}>Join and start your quiz journey</p>
+
+              {error && (
+                <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "var(--red)", fontSize: 13, marginBottom: 20 }}>
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div>
+                  <label className="input-label">Email</label>
+                  <input className="input" type="email" placeholder="you@example.com"
+                    value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="input-label">Password</label>
+                  <input className="input" type="password" placeholder="Min 8 chars with uppercase + number"
+                    value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+                  <p style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>Must contain uppercase, lowercase, and a number</p>
+                </div>
+
+                <div>
+                  <label className="input-label">I am a...</label>
+                  <div className="flex gap-3">
+                    {["STUDENT", "TEACHER"].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setForm({ ...form, role: r })}
+                        style={{
+                          flex: 1, padding: "10px 16px", borderRadius: 10, cursor: "pointer",
+                          fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 14,
+                          border: `1.5px solid ${form.role === r ? "var(--accent)" : "var(--border)"}`,
+                          background: form.role === r ? "rgba(124,92,252,0.1)" : "var(--bg-2)",
+                          color: form.role === r ? "var(--accent-2)" : "var(--text-2)",
+                          transition: "all 0.18s",
+                        }}
+                      >
+                        {r === "STUDENT" ? " Student" : " Teacher"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary btn-lg" style={{ marginTop: 8, width: "100%" }} disabled={loading}>
+                  {loading ? <Loader size="sm" /> : "Create Account"}
+                </button>
+
+                <div style={{ margin: "16px 0", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>or</div>
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleRegister}
+                    onError={() => setError("Google registration failed. Please try again.")}
+                    theme="filled_black"
+                    shape="rectangular"
+                    size="large"
+                    width="320"
+                  />
+                </div>
+              </form>
+
+              <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--text-2)" }}>
+                Already have an account?{" "}
+                <Link to="/login" style={{ color: "var(--accent-2)", fontWeight: 600, textDecoration: "none" }}>Sign in</Link>
+              </p>
+            </>
           )}
-
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <label className="input-label">Email</label>
-              <input className="input" type="email" placeholder="you@example.com"
-                value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-            </div>
-            <div>
-              <label className="input-label">Password</label>
-              <input className="input" type="password" placeholder="Min 8 chars with uppercase + number"
-                value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-              <p style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>Must contain uppercase, lowercase, and a number</p>
-            </div>
-
-            <div>
-              <label className="input-label">I am a...</label>
-              <div className="flex gap-3">
-                {["STUDENT", "TEACHER"].map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setForm({ ...form, role: r })}
-                    style={{
-                      flex: 1, padding: "10px 16px", borderRadius: 10, cursor: "pointer",
-                      fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 14,
-                      border: `1.5px solid ${form.role === r ? "var(--accent)" : "var(--border)"}`,
-                      background: form.role === r ? "rgba(124,92,252,0.1)" : "var(--bg-2)",
-                      color: form.role === r ? "var(--accent-2)" : "var(--text-2)",
-                      transition: "all 0.18s",
-                    }}
-                  >
-                    {r === "STUDENT" ? " Student" : " Teacher"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button type="submit" className="btn btn-primary btn-lg" style={{ marginTop: 8, width: "100%" }} disabled={loading}>
-              {loading ? <Loader size="sm" /> : "Create Account"}
-            </button>
-
-            <div style={{ margin: "16px 0", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>or</div>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <GoogleLogin
-                onSuccess={handleGoogleRegister}
-                onError={() => setError("Google registration failed. Please try again.")}
-                theme="filled_black"
-                shape="rectangular"
-                size="large"
-                width="320"
-              />
-            </div>
-          </form>
-
-          <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--text-2)" }}>
-            Already have an account?{" "}
-            <Link to="/login" style={{ color: "var(--accent-2)", fontWeight: 600, textDecoration: "none" }}>Sign in</Link>
-          </p>
         </div>
         <p style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "var(--text-3)" }}>
           <Link to="/" style={{ color: "var(--text-3)", textDecoration: "none" }}>← Back to home</Link>

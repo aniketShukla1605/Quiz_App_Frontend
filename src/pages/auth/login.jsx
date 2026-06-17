@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin } from "../../services/authService";
+import { googleLogin, resendVerification } from "../../services/authService";
 import Loader from "../../components/common/Loader";
 
 export default function LoginPage() {
@@ -12,6 +12,9 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendStatus, setResendStatus] = useState("");
+  const [resending, setResending] = useState(false);
 
   const handleGoogleLogin = async (credentialResponse) => {
     setError("");
@@ -31,6 +34,8 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setNeedsVerification(false);
+    setResendStatus("");
     setLoading(true);
     try {
       const res = await login(form);
@@ -38,9 +43,28 @@ export default function LoginPage() {
       if (res.data.role === "TEACHER") navigate("/teacher/dashboard");
       else navigate("/student/dashboard");
     } catch (err) {
-      setError(err.response?.data || "Invalid credentials. Please try again.");
+      if (err.response?.status === 403) {
+        setNeedsVerification(true);
+        setError(err.response?.data || "Email not verified. Please check your inbox.");
+      } else {
+        setError(err.response?.data || "Invalid credentials. Please try again.");
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!form.email.trim()) return;
+    setResending(true);
+    setResendStatus("");
+    try {
+      const res = await resendVerification(form.email);
+      setResendStatus(res.data || "If an account exists, a new link has been sent.");
+    } catch {
+      setResendStatus("Something went wrong. Please try again.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -101,10 +125,28 @@ export default function LoginPage() {
                 background: "rgba(239,68,68,0.1)",
                 border: "1px solid rgba(239,68,68,0.3)",
                 borderRadius: 8, padding: "10px 14px",
-                color: "var(--red)", fontSize: 13, marginBottom: 20,
+                color: "var(--red)", fontSize: 13, marginBottom: needsVerification ? 8 : 20,
               }}
             >
               {error}
+            </div>
+          )}
+
+          {needsVerification && (
+            <div style={{ marginBottom: 20 }}>
+              <button
+                type="button"
+                onClick={handleResend}
+                className="btn btn-ghost btn-sm"
+                disabled={resending}
+              >
+                {resending ? <Loader size="sm" /> : "Resend verification email"}
+              </button>
+              {resendStatus && (
+                <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-2)" }}>
+                  {resendStatus}
+                </div>
+              )}
             </div>
           )}
 

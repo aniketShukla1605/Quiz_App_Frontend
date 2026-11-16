@@ -1,64 +1,26 @@
+import Icon from "./Icon";
+// Spinner for buttons/inline; use <Skeleton/> for content areas.
 export default function Loader({ size = "md", fullPage = false }) {
-  const sizes = {
-    sm: 16,
-    md: 28,
-    lg: 44,
-  };
-  const px = sizes[size] ?? sizes.md;
-
-  const spinner = (
-    <svg
-      width={px}
-      height={px}
-      viewBox="0 0 24 24"
-      fill="none"
-      style={{ animation: "spin 0.75s linear infinite", flexShrink: 0 }}
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeOpacity="0.25"
-        strokeWidth="3"
-      />
-      <path
-        d="M12 2a10 10 0 0 1 10 10"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  const px = { sm: 16, md: 24, lg: 36 }[size] ?? 24;
+  const spin = (
+    <svg width={px} height={px} viewBox="0 0 24 24" fill="none" role="status" aria-label="Loading"
+      style={{ animation: "spin .7s linear infinite" }}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity=".2" strokeWidth="3" />
+      <path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
     </svg>
   );
-
-  if (fullPage) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--bg)",
-          color: "var(--accent)",
-        }}
-      >
-        {spinner}
-      </div>
-    );
-  }
-
+  if (!fullPage) return <span style={{ display: "inline-flex" }}>{spin}</span>;
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "inherit",
-      }}
-    >
-      {spinner}
-    </span>
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", color: "var(--accent)" }}>
+      <div style={{ display: "grid", gap: "var(--s3)", justifyItems: "center", color: "var(--text-2)" }}>
+        <span style={{ color: "var(--accent)" }}>{spin}</span>
+        <span style={{ fontSize: 14 }}>Loading your workspace</span>
+      </div>
+    </div>
   );
 }
+export const Skeleton = ({ h = 56, count = 1 }) => (
+  <div style={{ display: "grid", gap: "var(--s3)" }} aria-busy="true">
+    {Array.from({ length: count }, (_, i) => <div key={i} className="skeleton" style={{ height: h }} />)}
+  </div>
+);

@@ -1,149 +1,70 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getMyHistory, syncMyResults } from "../../services/resultService";
-import Loader from "../../components/common/Loader";
+import { Skeleton } from "../../components/common/Loader";
+import { EmptyState, ErrorState } from "../../components/common/States";
+import Icon from "../../components/common/Icon";
+import { explain } from "../../utils/errors";
 
-function ScoreBadge({ pct }) {
-  const cls = pct >= 75 ? "badge-green" : pct >= 50 ? "badge-accent" : "badge-red";
-  return <span className={`badge ${cls}`}>{pct}%</span>;
-}
+const tone = (p) => (p >= 75 ? "badge-green" : p >= 50 ? "badge-accent" : "badge-red");
 
 export default function HistoryPage() {
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [error, setError] = useState("");
   const [syncing, setSyncing] = useState(false);
-  const [filter, setFilter] = useState("all");
 
-  const load = () => {
-    getMyHistory()
-      .then((res) => setHistory(res.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  };
+  const load = useCallback((fn = getMyHistory) => {
+    setStatus("loading");
+    return fn()
+      .then((r) => { setHistory(r.data || []); setStatus("ready"); })
+      .catch((e) => { setError(explain(e, "load your history")); setStatus("error"); });
+  }, []);
+  useEffect(() => { load(); }, [load]);
 
-  useEffect(() => { load(); }, []);
-
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const res = await syncMyResults();
-      setHistory(res.data || []);
-    } catch {} finally {
-      setSyncing(false);
-    }
-  };
-
-  const filtered = history.filter((h) => {
-    if (filter === "all") return true;
-    const pct = h.percentage ?? 0;
-    if (filter === "pass") return pct >= 60;
-    if (filter === "fail") return pct < 60;
-    return true;
-  });
+  const sync = async () => { setSyncing(true); await load(syncMyResults); setSyncing(false); };
 
   return (
-    <div style={{ animation: "fadeUp 0.4s ease" }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex justify-between items-center mb-8" style={{ gap: "var(--s4)" }}>
         <div>
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 32, letterSpacing: "-0.02em", marginBottom: 2 }}>Quiz History</h1>
-          <p style={{ color: "var(--text-2)", fontSize: 14 }}>{history.length} attempt{history.length !== 1 ? "s" : ""} recorded</p>
+          <h1 style={{ fontSize: 40 }}>Your attempts</h1>
+          {status === "ready" && <p style={{ color: "var(--text-2)" }}>{history.length} {history.length === 1 ? "quiz" : "quizzes"} completed</p>}
         </div>
-        <button onClick={handleSync} className="btn btn-ghost" disabled={syncing}>
-          {syncing ? <Loader size="sm" /> : "↻ Sync"}
+        <button className="btn btn-ghost" onClick={sync} disabled={syncing || status === "loading"}>
+          <Icon name="refresh" size={16} style={syncing ? { animation: "spin .7s linear infinite" } : undefined} />Refresh
         </button>
       </div>
 
-      {/* Filter */}
-      <div className="flex items-center gap-2 mb-6">
-        {["all", "pass", "fail"].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className="btn btn-ghost btn-sm"
-            style={{
-              background: filter === f ? "var(--accent)" : "transparent",
-              color: filter === f ? "white" : "var(--text-2)",
-              border: filter === f ? "none" : "1px solid var(--border)",
-            }}
-          >
-            {f === "all" ? "All" : f === "pass" ? "≥60% Pass" : "<60% Fail"}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {[1,2,3,4].map(i => <div key={i} className="skeleton" style={{ height: 72, borderRadius: 14 }} />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="card" style={{ padding: 56, textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}><img src="src/assets/database.png"/></div>
-          <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>No attempts yet</h2>
-          <p style={{ color: "var(--text-2)", marginBottom: 24, fontSize: 14 }}>Take your first quiz to see your history here.</p>
-          <Link to="/student/quizzes" className="btn btn-primary">Take a Quiz →</Link>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {filtered.map((h, i) => {
-            const pct = h.percentage ?? Math.round((h.score / h.maxScore) * 100) ?? 0;
+      {status === "loading" && <Skeleton count={5} h={64} />}
+      {status === "error" && <ErrorState message={error} onRetry={() => load()} />}
+      {status === "ready" && history.length === 0 && (
+        <EmptyState icon="target" title="No quizzes taken yet"
+          body="Ask your teacher for a quiz ID, enter it on the Take a quiz page, and your first score will show up here."
+          action={<Link to="/student/quizzes" className="btn btn-primary">Enter a quiz ID</Link>} />
+      )}
+      {status === "ready" && history.length > 0 && (
+        <ul style={{ listStyle: "none" }}>
+          {history.map((h, i) => {
+            const pct = Math.round(h.percentage ?? (h.maxScore ? (h.score / h.maxScore) * 100 : 0));
             return (
-              <div
-                key={h.id || h.attemptId || i}
-                className="card"
-                style={{
-                  padding: "16px 20px",
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  animation: `fadeUp 0.3s ease ${i * 0.04}s both`,
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    style={{
-                      width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                      background: pct >= 75 ? "rgba(34,197,94,0.12)" : pct >= 50 ? "rgba(124,92,252,0.12)" : "rgba(239,68,68,0.12)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14,
-                      color: pct >= 75 ? "var(--green)" : pct >= 50 ? "var(--accent-2)" : "var(--red)",
-                    }}
-                  >
-                    {pct >= 75 ? "🏆" : pct >= 50 ? "👍" : "📚"}
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 2 }}>
-                      Quiz #{h.quizId}
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--text-3)" }}>
-                      {h.submittedAt ? new Date(h.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
-                      {h.submissionMethod && (
-                        <span style={{ marginLeft: 8, color: h.submissionMethod === "AUTO" ? "var(--amber)" : "var(--text-3)" }}>
-                          · {h.submissionMethod === "AUTO" ? "⏱ Auto-submitted" : "✅ Manual"}
-                        </span>
-                      )}
-                    </div>
+              <li key={h.id ?? h.attemptId ?? i} className="rise" style={{ "--i": Math.min(i, 6), display: "grid", gridTemplateColumns: "1fr auto auto", gap: "var(--s5)", alignItems: "center", padding: "var(--s4) 0", borderTop: "1px solid var(--border)" }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>Quiz {h.quizId}</div>
+                  <div style={{ fontSize: 14, color: "var(--text-3)" }}>
+                    {h.submittedAt ? new Date(h.submittedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "Not submitted"}
+                    {h.submissionMethod === "AUTO" && " (auto-submitted when time ran out)"}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 15 }}>
-                      {h.score ?? "—"} / {h.maxScore ?? "—"}
-                    </div>
-                    <ScoreBadge pct={pct} />
-                  </div>
-                  {h.attemptId && (
-                    <Link
-                      to={`/student/quiz/${h.quizId}/result`}
-                      className="btn btn-ghost btn-sm"
-                      style={{ textDecoration: "none" }}
-                    >
-                      View
-                    </Link>
-                  )}
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontFamily: "var(--display)", fontWeight: 700, fontSize: 20 }}>{h.score ?? 0}/{h.maxScore ?? 0}</div>
+                  <span className={`badge ${tone(pct)}`}>{pct}%</span>
                 </div>
-              </div>
+                {h.attemptId ? <Link to={`/student/quiz/${h.quizId}/result`} className="btn btn-ghost btn-sm">Details</Link> : <span />}
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

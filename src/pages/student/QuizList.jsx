@@ -1,71 +1,50 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Loader from "../../components/common/Loader";
+import Icon from "../../components/common/Icon";
 
-// Since there's no "list all quizzes" endpoint, let students enter a quiz ID
+const STEPS = [
+  "Get a quiz ID from your teacher.",
+  "Enter it here and read the instructions.",
+  "Start when you're ready. The timer begins right away.",
+  "Answer and submit before time runs out.",
+];
+
 export default function QuizList() {
   const navigate = useNavigate();
   const [quizId, setQuizId] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleStart = (e) => {
+  const go = (e) => {
     e.preventDefault();
-    if (!quizId.trim() || isNaN(Number(quizId))) {
-      setError("Please enter a valid quiz ID.");
-      return;
-    }
-    navigate(`/student/quiz/${quizId}/instructions`);
+    const n = Number(quizId);
+    if (!quizId.trim() || !Number.isInteger(n) || n < 1) return setError("Quiz IDs are whole numbers, like 42. Check the ID your teacher gave you.");
+    navigate(`/student/quiz/${n}/instructions`);
   };
 
-  const sampleIds = [1, 2, 3, 4, 5];
-
   return (
-    <div style={{ maxWidth: 680, margin: "0 auto", animation: "fadeUp 0.4s ease" }}>
-      <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 32, letterSpacing: "-0.02em", marginBottom: 4 }}>Take a Quiz</h1>
-      <p style={{ color: "var(--text-2)", marginBottom: 36, fontSize: 14 }}>Enter a quiz ID provided by your teacher to get started</p>
+    <div style={{ maxWidth: 640 }}>
+      <h1 style={{ fontSize: 40, marginBottom: "var(--s2)" }}>Take a quiz</h1>
+      <p style={{ color: "var(--text-2)", marginBottom: "var(--s7)" }}>Enter the quiz ID your teacher shared with you.</p>
 
-      <div className="card" style={{ padding: 32, marginBottom: 24 }}>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 20 }}>Enter Quiz ID</h2>
-        {error && (
-          <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "var(--red)", fontSize: 13, marginBottom: 16 }}>{error}</div>
-        )}
-        <form onSubmit={handleStart} style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
-          <div style={{ flex: 1 }}>
-            <label className="input-label">Quiz ID</label>
-            <input
-              className="input"
-              type="number"
-              min="1"
-              placeholder="e.g. 42"
-              value={quizId}
-              onChange={(e) => { setQuizId(e.target.value); setError(""); }}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? <Loader size="sm" /> : "Start →"}
-          </button>
-        </form>
-      </div>
-
-      <div className="card" style={{ padding: 24 }}>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 16, color: "var(--text-2)" }}>
-           How it works
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {[
-            ["1", "Get a quiz ID from your teacher or class"],
-            ["2", "Enter it above and click Start"],
-            ["3", "Read the instructions and begin when ready"],
-            ["4", "Answer questions before the timer runs out"],
-          ].map(([num, text]) => (
-            <div key={num} className="flex items-center gap-3">
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontFamily: "Syne, sans-serif", fontWeight: 700, flexShrink: 0 }}>{num}</div>
-              <span style={{ fontSize: 14, color: "var(--text-2)" }}>{text}</span>
-            </div>
-          ))}
+      <form onSubmit={go} noValidate style={{ display: "flex", gap: "var(--s3)", alignItems: "flex-end", marginBottom: "var(--s2)" }}>
+        <div style={{ flex: 1 }}>
+          <label className="input-label" htmlFor="qid">Quiz ID</label>
+          <input id="qid" className="input" inputMode="numeric" placeholder="For example, 42" value={quizId}
+            aria-invalid={!!error} aria-describedby="qid-err"
+            onChange={(e) => { setQuizId(e.target.value); setError(""); }} />
         </div>
-      </div>
+        <button className="btn btn-primary" style={{ height: 46 }}>Continue <Icon name="arrow" size={16} /></button>
+      </form>
+      <p id="qid-err" role="alert" style={{ minHeight: 24, color: "var(--red)", fontSize: 14 }}>{error}</p>
+
+      <ol style={{ listStyle: "none", marginTop: "var(--s7)" }}>
+        {STEPS.map((s, i) => (
+          <li key={s} className="rise" style={{ "--i": i, display: "flex", gap: "var(--s4)", padding: "var(--s4) 0", borderTop: "1px solid var(--border)" }}>
+            <span style={{ fontFamily: "var(--display)", fontWeight: 700, color: "var(--accent)", width: 24 }}>{i + 1}</span>
+            <span style={{ color: "var(--text-2)" }}>{s}</span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

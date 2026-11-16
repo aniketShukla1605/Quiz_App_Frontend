@@ -1,106 +1,65 @@
 import { Link } from "react-router-dom";
+import Icon from "../../components/common/Icon";
 
 const features = [
-  { icon: "src/assets/lightning.png", title: "Instant Quizzes", desc: "Create and deploy quizzes in seconds with our intuitive interface." },
-  { icon: "src/assets/data-analytics.png", title: "Live Analytics", desc: "Track performance, scores, and trends with beautiful dashboards." },
-  { icon: "src/assets/podium.png", title: "Leaderboards", desc: "Foster healthy competition with real-time rankings and scores." },
-  { icon: "src/assets/secure.png", title: "Secure Auth", desc: "JWT-based authentication with refresh tokens and Google OAuth." },
-  { icon: "src/assets/timer.png", title: "Timed Quizzes", desc: "Set custom durations with auto-submission when time expires." },
-  { icon: "src/assets/score.png", title: "Smart Scoring", desc: "Automatic grading with detailed result breakdowns." },
+  ["bolt", "Build in minutes", "Pick a subject and a length. Quizzy pulls random questions from your bank, or write your own."],
+  ["clock", "Timer that holds up", "The clock runs on the server. If a student's wifi drops, answers are saved and the quiz submits itself on time."],
+  ["chart", "Results as they land", "Scores, averages and each student's history appear the moment someone submits."],
+  ["trophy", "Rankings per quiz", "See who finished first and who scored highest, by quiz title."],
 ];
 
 export default function LandingPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", overflow: "hidden" }}>
-      {/* Header */}
-      <header style={{ padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, zIndex: 10, background: "rgba(10,10,15,0.9)", backdropFilter: "blur(20px)" }}>
-        <div className="flex items-center gap-2">
-          <div style={{ width: 50, height: 50, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}><img src="src\assets\logo.png" alt="QuizApp Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></div>
-          <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em" }}>QuizApp</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/login" className="btn btn-ghost">Sign In</Link>
-          <Link to="/register" className="btn btn-primary">Get Started</Link>
-        </div>
+    <div style={{ minHeight: "100vh" }}>
+      <header className="wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: 72 }}>
+        <Link to="/" style={{ display: "flex", alignItems: "center", gap: "var(--s2)", color: "var(--text)" }}>
+          <img src="/favicon.svg" alt="" width="28" height="28" />
+          <span style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 20, letterSpacing: "-.03em" }}>Quizzy</span>
+        </Link>
+        <nav style={{ display: "flex", alignItems: "center", gap: "var(--s5)" }}>
+          <Link to="/login" className="navlink">Sign in</Link>
+          <Link to="/register" className="btn btn-primary btn-sm">Create account</Link>
+        </nav>
       </header>
 
-      {/* Hero */}
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "100px 40px 80px", textAlign: "center", position: "relative" }}>
-        <div style={{ position: "absolute", top: "0%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,92,252,0.1) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <main>
+        <section className="wrap hero">
+          <div>
+            <h1 className="rise" style={{ "--i": 0 }}>Quizzes that<br />run themselves.</h1>
+            <p className="rise" style={{ "--i": 1, fontSize: 20, color: "var(--text-2)", maxWidth: 480, margin: "var(--s5) 0 var(--s6)" }}>
+              Set a quiz, share its ID, and watch scores arrive. Quizzy handles the timer, the marking and the leaderboard.
+            </p>
+            <div className="rise" style={{ "--i": 2, display: "flex", gap: "var(--s3)", flexWrap: "wrap" }}>
+              <Link to="/register?role=TEACHER" className="btn btn-primary btn-lg">Set a quiz</Link>
+              <Link to="/register?role=STUDENT" className="btn btn-ghost btn-lg">Take a quiz</Link>
+            </div>
+          </div>
+          {/* Add public/photos/hero.jpg (e.g. a classroom photo from unsplash.com) */}
+          <img className="photo rise" style={{ "--i": 3, aspectRatio: "4/5" }} src="/photos/hero.jpg" alt="Students working at laptops in a bright classroom" />
+        </section>
 
-        <div className="badge badge-accent" style={{ marginBottom: 20, display: "inline-flex" }}>
-          Now with real-time sync & auto-submit
-        </div>
-        <h1
-          style={{
-            fontFamily: "Syne, sans-serif", fontWeight: 800,
-            fontSize: "clamp(44px, 8vw, 80px)",
-            lineHeight: 1.05, letterSpacing: "-0.03em",
-            marginBottom: 24,
-            background: "linear-gradient(135deg, var(--text) 0%, var(--accent-2) 60%)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          }}
-        >
-          Quiz smarter,<br />learn faster.
-        </h1>
-        <p style={{ fontSize: 18, color: "var(--text-2)", maxWidth: 560, margin: "0 auto 40px", lineHeight: 1.7 }}>
-          A full-stack quiz platform for teachers and students — with live timers, analytics, leaderboards, and instant feedback.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          <Link to="/register" className="btn btn-primary btn-lg">Start for free →</Link>
-          <Link to="/login" className="btn btn-ghost btn-lg">Sign in</Link>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center justify-center gap-8 mt-16" style={{ flexWrap: "wrap" }}>
-          {[["10+", "Question Categories"], ["∞", "Quiz Attempts"], ["Real-time", "Score Sync"]].map(([val, label]) => (
-            <div key={label} style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 28, color: "var(--accent-2)" }}>{val}</div>
-              <div style={{ fontSize: 13, color: "var(--text-3)", marginTop: 2 }}>{label}</div>
+        <section className="wrap" style={{ padding: "var(--s8) 0" }}>
+          <h2 style={{ fontSize: "clamp(28px,4vw,44px)", maxWidth: 640, marginBottom: "var(--s7)" }}>Less time setting up, more time teaching.</h2>
+          {features.map(([icon, title, body]) => (
+            <div className="row" key={title}>
+              <span style={{ color: "var(--accent)" }}><Icon name={icon} size={28} /></span>
+              <h3 style={{ fontSize: 22 }}>{title}</h3>
+              <p style={{ color: "var(--text-2)", maxWidth: 560 }}>{body}</p>
             </div>
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* Features Grid */}
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 40px 100px" }}>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 32, fontWeight: 700, textAlign: "center", marginBottom: 12, letterSpacing: "-0.02em" }}>
-          Everything you need
-        </h2>
-        <p style={{ color: "var(--text-2)", textAlign: "center", marginBottom: 48, fontSize: 15 }}>Powerful features for educators and learners alike</p>
+        <section className="wrap" style={{ padding: "0 var(--s5) var(--s8)" }}>
+          <img className="photo" style={{ aspectRatio: "21/9" }} src="/photos/study.jpg" alt="A student writing answers at a desk" />
+        </section>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-          {features.map((f, i) => (
-            <div
-              key={f.title}
-              className="card"
-              style={{
-                padding: 24,
-                animation: `fadeUp 0.4s ease ${i * 0.07}s both`,
-              }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 12 }}><img src={f.icon} alt={f.title} style={{ width: 48, height: 48 }} /></div>
-              <h3 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{f.title}</h3>
-              <p style={{ color: "var(--text-2)", fontSize: 14, lineHeight: 1.6 }}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ borderTop: "1px solid var(--border)", padding: "80px 40px", textAlign: "center", background: "var(--bg-2)" }}>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 36, letterSpacing: "-0.02em", marginBottom: 16 }}>
-          Ready to start quizzing?
-        </h2>
-        <p style={{ color: "var(--text-2)", marginBottom: 32, fontSize: 16 }}>Join as a student or teacher — it's completely free.</p>
-        <div className="flex items-center justify-center gap-3">
-          <Link to="/register?role=STUDENT" className="btn btn-primary btn-lg">Join as Student</Link>
-          <Link to="/register?role=TEACHER" className="btn btn-ghost btn-lg">Join as Teacher</Link>
-        </div>
-      </section>
-
-      <footer style={{ padding: "24px 40px", borderTop: "1px solid var(--border)", textAlign: "center" }}>
-        <p style={{ fontSize: 13, color: "var(--text-3)" }}>© 2025 QuizApp · Built with Spring Boot + React</p>
+        <section className="wrap" style={{ padding: "var(--s7) 0 var(--s9)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--s6)", flexWrap: "wrap", borderTop: "1px solid var(--border)" }}>
+          <h2 style={{ fontSize: "clamp(28px,4vw,44px)", maxWidth: 520 }}>Your first quiz takes about two minutes.</h2>
+          <Link to="/register" className="btn btn-primary btn-lg">Create a free account <Icon name="arrow" size={18} /></Link>
+        </section>
+      </main>
+      <footer className="wrap" style={{ padding: "var(--s5) 0", color: "var(--text-3)", fontSize: 14, borderTop: "1px solid var(--border)" }}>
+        © 2025 Quizzy
       </footer>
     </div>
   );

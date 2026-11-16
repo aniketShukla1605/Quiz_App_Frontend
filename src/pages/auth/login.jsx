@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../../services/authService";
-import { useAuth } from "../../context/AuthContext";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, resendVerification } from "../../services/authService";
+import { login, googleLogin, resendVerification } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 import Loader from "../../components/common/Loader";
+import { ErrorState } from "../../components/common/States";
+import { explain } from "../../utils/errors";
 
 export default function LoginPage() {
   const { login: ctxLogin } = useAuth();
@@ -12,203 +13,61 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [needsVerification, setNeedsVerification] = useState(false);
-  const [resendStatus, setResendStatus] = useState("");
-  const [resending, setResending] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [note, setNote] = useState("");
 
-  const handleGoogleLogin = async (credentialResponse) => {
-    setError("");
-    setLoading(true);
-    try {
-      const res = await googleLogin({ idToken: credentialResponse.credential });
-      ctxLogin({ role: res.data.role, email: res.data.email });
-      if (res.data.role === "TEACHER") navigate("/teacher/dashboard");
-      else navigate("/student/dashboard");
-    } catch (err) {
-      setError(err.response?.data || "Google login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setNeedsVerification(false);
-    setResendStatus("");
-    setLoading(true);
-    try {
-      const res = await login(form);
-      ctxLogin({ role: res.data.role, email: res.data.email });
-      if (res.data.role === "TEACHER") navigate("/teacher/dashboard");
-      else navigate("/student/dashboard");
-    } catch (err) {
-      if (err.response?.status === 403) {
-        setNeedsVerification(true);
-        setError(err.response?.data || "Email not verified. Please check your inbox.");
-      } else {
-        setError(err.response?.data || "Invalid credentials. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  const finish = (d) => {
+    ctxLogin({ role: d.role, email: d.email });
+    navigate(d.role === "TEACHER" ? "/teacher/dashboard" : "/student/dashboard");
   };
 
-  const handleResend = async () => {
-    if (!form.email.trim()) return;
-    setResending(true);
-    setResendStatus("");
-    try {
-      const res = await resendVerification(form.email);
-      setResendStatus(res.data || "If an account exists, a new link has been sent.");
-    } catch {
-      setResendStatus("Something went wrong. Please try again.");
-    } finally {
-      setResending(false);
-    }
+  const run = async (fn) => {
+    setError(""); setNote(""); setUnverified(false); setLoading(true);
+    try { finish((await fn()).data); }
+    catch (e) {
+      setUnverified(e.response?.status === 403);
+      setError(e.response?.status === 401 ? "That email and password don't match. Check both and try again." : explain(e, "sign you in"));
+    } finally { setLoading(false); }
+  };
+
+  const resend = async () => {
+    try { await resendVerification(form.email); setNote(`We sent a new link to ${form.email}. It expires in 24 hours.`); }
+    catch (e) { setNote(explain(e, "send the link")); }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--bg)",
-        padding: 24,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Background decoration */}
-      <div
-        style={{
-          position: "absolute",
-          top: "10%", left: "50%",
-          transform: "translateX(-50%)",
-          width: 600, height: 600,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(124,92,252,0.08) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+    <main style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "minmax(320px,520px) 1fr" }}>
+      <div style={{ padding: "var(--s7)", display: "grid", alignContent: "center" }}>
+        <Link to="/" style={{ display: "flex", alignItems: "center", gap: "var(--s2)", color: "var(--text)", marginBottom: "var(--s8)" }}>
+          <img src="/favicon.svg" alt="" width="28" height="28" /><b style={{ fontFamily: "var(--display)", fontSize: 20 }}>Quizzy</b>
+        </Link>
+        <h1 className="rise" style={{ fontSize: 44, marginBottom: "var(--s2)" }}>Welcome back</h1>
+        <p className="rise" style={{ "--i": 1, color: "var(--text-2)", marginBottom: "var(--s6)" }}>Sign in to pick up where you left off.</p>
 
-      <div style={{ width: "100%", maxWidth: 400, animation: "fadeUp 0.4s ease" }}>
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div
-            style={{
-              width: 40, height: 40,
-              background: "var(--accent)",
-              borderRadius: 10,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 20,
-            }}
-          >⚡</div>
-          <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em" }}>
-            QuizApp
-          </span>
+        {error && <div style={{ marginBottom: "var(--s4)" }}><ErrorState message={error} /></div>}
+        {unverified && (
+          <div style={{ marginBottom: "var(--s4)" }}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={resend}>Send a new verification link</button>
+            {note && <p style={{ fontSize: 14, color: "var(--text-2)", marginTop: "var(--s2)" }}>{note}</p>}
+          </div>
+        )}
+
+        <form onSubmit={(e) => { e.preventDefault(); run(() => login(form)); }} style={{ display: "grid", gap: "var(--s4)" }}>
+          <div><label className="input-label" htmlFor="email">Email</label>
+            <input id="email" className="input" type="email" autoComplete="email" placeholder="name@school.edu" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div>
+          <div><label className="input-label" htmlFor="pw">Password</label>
+            <input id="pw" className="input" type="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></div>
+          <button className="btn btn-primary btn-lg" disabled={loading}>{loading ? <Loader size="sm" /> : "Sign in"}</button>
+        </form>
+
+        <p style={{ margin: "var(--s5) 0", color: "var(--text-3)", fontSize: 14, textAlign: "center" }}>or</p>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <GoogleLogin onSuccess={(c) => run(() => googleLogin({ idToken: c.credential }))} onError={() => setError("Google sign-in was cancelled or blocked. Try again, or use your email.")} shape="rectangular" size="large" width="320" />
         </div>
-
-        <div className="card" style={{ padding: 32 }}>
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
-            Welcome back
-          </h1>
-          <p style={{ color: "var(--text-2)", fontSize: 14, marginBottom: 28 }}>
-            Sign in to continue your learning journey
-          </p>
-
-          {error && (
-            <div
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                borderRadius: 8, padding: "10px 14px",
-                color: "var(--red)", fontSize: 13, marginBottom: needsVerification ? 8 : 20,
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          {needsVerification && (
-            <div style={{ marginBottom: 20 }}>
-              <button
-                type="button"
-                onClick={handleResend}
-                className="btn btn-ghost btn-sm"
-                disabled={resending}
-              >
-                {resending ? <Loader size="sm" /> : "Resend verification email"}
-              </button>
-              {resendStatus && (
-                <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-2)" }}>
-                  {resendStatus}
-                </div>
-              )}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <label className="input-label">Email</label>
-              <input
-                className="input"
-                type="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="input-label">Password</label>
-              <input
-                className="input"
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              style={{ marginTop: 8, width: "100%" }}
-              disabled={loading}
-            >
-              {loading ? <Loader size="sm" /> : "Sign In"}
-            </button>
-
-            <div style={{ margin: "16px 0", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>or</div>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <GoogleLogin
-                onSuccess={handleGoogleLogin}
-                onError={() => setError("Google login failed. Please try again.")}
-                theme="filled_black"
-                shape="rectangular"
-                size="large"
-                width="320"
-              />
-            </div>
-          </form>
-
-
-          <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--text-2)" }}>
-            Don't have an account?{" "}
-            <Link to="/register" style={{ color: "var(--accent-2)", fontWeight: 600, textDecoration: "none" }}>
-              Sign up
-            </Link>
-          </p>
-        </div>
-
-        <p style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "var(--text-3)" }}>
-          <Link to="/" style={{ color: "var(--text-3)", textDecoration: "none" }}>← Back to home</Link>
-        </p>
+        <p style={{ marginTop: "var(--s6)", color: "var(--text-2)" }}>New here? <Link to="/register" style={{ fontWeight: 600 }}>Create an account</Link></p>
       </div>
-    </div>
+      {/* Add public/photos/login.jpg */}
+      <img className="photo" src="/photos/login.jpg" alt="A teacher helping a student at a desk" style={{ height: "100vh", borderRadius: 0 }} />
+    </main>
   );
 }

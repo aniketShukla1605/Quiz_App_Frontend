@@ -1,146 +1,40 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import Icon from "./Icon";
 
-export default function Navbar({ onMenuClick }) {
+export default function Navbar({ onMenuClick, menuOpen }) {
   const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
+  const name = profile?.displayName || user?.email?.split("@")[0] || "Account";
+  const home = user?.role === "TEACHER" ? "/teacher/dashboard" : "/student/dashboard";
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
-
-  const initials =
-    profile?.displayName?.charAt(0)?.toUpperCase() ||
-    user?.email?.charAt(0)?.toUpperCase() ||
-    "?";
+  const signOut = async () => { await logout(); navigate("/login"); };
 
   return (
-    <header
-      style={{
-        height: 60,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 24px",
-        borderBottom: "1px solid var(--border)",
-        background: "var(--bg)",
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-        gap: 12,
-      }}
-    >
-      {/* Left: hamburger (mobile) + logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <button
-          onClick={onMenuClick}
-          className="btn btn-ghost btn-sm"
-          style={{ display: "none" }}
-          aria-label="Toggle menu"
-          id="nav-hamburger"
-        >
-          ☰
+    <header style={{ height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 var(--s5)", borderBottom: "1px solid var(--border)", background: "var(--bg)", position: "sticky", top: 0, zIndex: 40 }}>
+      <div className="flex items-center gap-3">
+        <button className="btn btn-ghost btn-sm menu-btn" onClick={onMenuClick} aria-label="Menu" aria-expanded={!!menuOpen} aria-controls="main-nav">
+          <Icon name="list" size={18} />
         </button>
-        <Link
-          to="/"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            textDecoration: "none",
-          }}
-        >
-          <div
-            style={{
-              width: 30,
-              height: 30,
-              background: "var(--accent)",
-              borderRadius: 8,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 15,
-            }}
-          >
-            <img
-              src="../../assets/logo.png"
-              alt="Logo"
-              style={{ width: 18, height: 18, objectFit: "contain" }}
-            />
-          </div>
-          <span
-            style={{
-              fontFamily: "Syne, sans-serif",
-              fontWeight: 800,
-              fontSize: 17,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            QuizApp
-          </span>
+        <Link to={home} className="flex items-center gap-2" style={{ color: "var(--text)" }}>
+          <img src="/favicon.svg" alt="" width="28" height="28" />
+          <span style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 20, letterSpacing: "-.03em" }}>Quizzy</span>
         </Link>
       </div>
 
-      {/* Right: role badge + avatar + logout */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {user?.role && (
-          <span
-            className="badge badge-accent"
-            style={{ fontSize: 11, textTransform: "capitalize" }}
-          >
-            {user.role.toLowerCase()}
+      <div className="flex items-center gap-4">
+        <Link to="/profile" className="flex items-center gap-3" style={{ color: "var(--text)" }} aria-label="Your profile">
+          <span style={{ textAlign: "right", lineHeight: 1.25 }} className="nav-name">
+            <span style={{ display: "block", fontWeight: 600, fontSize: 14 }}>{name}</span>
+            <span style={{ display: "block", fontSize: 12, color: "var(--text-3)" }}>{user?.role === "TEACHER" ? "Teacher" : "Student"}</span>
           </span>
-        )}
-
-        <Link
-          to="/profile"
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: "50%",
-            background: "var(--surface)",
-            border: "1.5px solid var(--border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-            textDecoration: "none",
-            flexShrink: 0,
-          }}
-          title="Profile"
-        >
-          {profile?.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt="avatar"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
-          ) : (
-            <span
-              style={{
-                fontFamily: "Syne, sans-serif",
-                fontWeight: 800,
-                fontSize: 14,
-                color: "var(--accent-2)",
-              }}
-            >
-              {initials}
-            </span>
-          )}
+          <span style={{ width: 36, height: 36, borderRadius: "var(--radius)", overflow: "hidden", background: "var(--accent-bg)", color: "var(--accent)", display: "grid", placeItems: "center", fontWeight: 700 }}>
+            {profile?.avatarUrl
+              ? <img src={profile.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              : name.charAt(0).toUpperCase()}
+          </span>
         </Link>
-
-        <button
-          onClick={handleLogout}
-          className="btn btn-ghost btn-sm"
-          title="Logout"
-          style={{ fontSize: 13 }}
-        >
-          Sign out
-        </button>
+        <button className="btn btn-ghost btn-sm" onClick={signOut}><Icon name="logout" size={16} />Sign out</button>
       </div>
     </header>
   );

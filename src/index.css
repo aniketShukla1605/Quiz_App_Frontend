@@ -1,7 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&display=swap");
 
 /* Tokens: one accent, one radius, one spacing scale (4px base) */
 :root{
@@ -89,3 +89,8 @@ img{max-width:100%;display:block}
   .scrim.open{display:block;position:fixed;inset:64px 0 0 0;background:rgba(26,29,36,.4);z-index:20;animation:fadeUp .2s}
 }
 @media (max-width:560px){.nav-name{display:none}}
+.navlink-row .row-arrow{transition:transform .2s var(--ease);color:var(--text-3)}
+.navlink-row:hover .row-arrow{transform:translateX(var(--s1));color:var(--accent)}
+.navlink-row:hover{text-decoration:none}
+@media (max-width:820px){.navlink-row{grid-template-columns:32px 1fr 24px!important}.navlink-row>span:nth-child(3){grid-column:2/4;grid-row:2}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}

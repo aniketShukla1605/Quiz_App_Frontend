@@ -1,0 +1,2 @@
+export const CATEGORIES = ["Java","Python","JavaScript","React","Spring Boot","Database","Algorithms","Data Structures","Operating Systems","Networking","Linux","Docker","Math","Science","English","History","General Knowledge"];
+export const DIFFICULTIES = ["Easy", "Medium", "Hard"];

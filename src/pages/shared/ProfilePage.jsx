@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getProfile, updateProfile, uploadAvatar, deleteAvatar } from "../../services/profileService";
-import Loader from "../../components/common/Loader";
+import Loader, { Skeleton } from "../../components/common/Loader";
+import Icon from "../../components/common/Icon";
+import { ErrorState } from "../../components/common/States";
+import { explain } from "../../utils/errors";
 
 export default function ProfilePage() {
   const { updateProfile: ctxUpdate } = useAuth();
@@ -9,135 +12,73 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ displayName: "", bio: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [success, setSuccess] = useState("");
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef();
 
-  useEffect(() => {
-    getProfile().then((res) => {
-      setProfile(res.data);
-      setForm({ displayName: res.data.displayName || "", bio: res.data.bio || "" });
-    }).finally(() => setLoading(false));
-  }, []);
+  const load = () => {
+    setLoading(true); setError("");
+    getProfile().then((r) => { setProfile(r.data); setForm({ displayName: r.data.displayName || "", bio: r.data.bio || "" }); })
+      .catch((e) => setError(explain(e, "load your profile"))).finally(() => setLoading(false));
+  };
+  useEffect(load, []);
 
-  const handleSave = async (e) => {
+  const apply = (d) => { setProfile(d); ctxUpdate(d); };
+
+  const save = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    setError(""); setSuccess("");
-    try {
-      const res = await updateProfile(form);
-      setProfile(res.data);
-      ctxUpdate(res.data);
-      setSuccess("Profile updated successfully!");
-      setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError("Failed to update profile.");
-    } finally {
-      setSaving(false);
-    }
+    if (!form.displayName.trim()) return setError("Your display name can't be empty. It's what teachers see on rankings.");
+    setSaving(true); setError(""); setSaved(false);
+    try { apply((await updateProfile(form)).data); setSaved(true); setTimeout(() => setSaved(false), 2500); }
+    catch (err) { setError(explain(err, "save your profile")); }
+    finally { setSaving(false); }
   };
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append("file", file);
-    setUploading(true);
-    try {
-      const res = await uploadAvatar(fd);
-      setProfile(res.data);
-      ctxUpdate(res.data);
-    } catch {
-      setError("Avatar upload failed.");
-    } finally {
-      setUploading(false);
-    }
+  const photo = async (fn, arg) => {
+    setPhotoBusy(true); setError("");
+    try { apply((await fn(arg)).data); } catch (err) { setError(explain(err, "update your photo")); }
+    finally { setPhotoBusy(false); }
   };
 
-  const handleDeleteAvatar = async () => {
-    setUploading(true);
-    try {
-      const res = await deleteAvatar();
-      setProfile(res.data);
-      ctxUpdate(res.data);
-    } catch {
-      setError("Failed to remove avatar.");
-    } finally {
-      setUploading(false);
-    }
+  const pick = (e) => {
+    const f = e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    if (!f.type.startsWith("image/")) return setError("Choose an image file, such as a JPG or PNG.");
+    if (f.size > 5 * 1024 * 1024) return setError("That image is over 5 MB. Choose a smaller one.");
+    const fd = new FormData(); fd.append("file", f); photo(uploadAvatar, fd);
   };
 
-  if (loading) return <Loader fullPage />;
+  if (loading) return <div style={{ maxWidth: 600 }}><Skeleton count={4} h={64} /></div>;
+  if (!profile) return <div style={{ maxWidth: 600 }}><ErrorState message={error} onRetry={load} /></div>;
 
   return (
-    <div style={{ maxWidth: 680, margin: "0 auto" }}>
-      <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 28, marginBottom: 4, letterSpacing: "-0.02em" }}>My Profile</h1>
-      <p style={{ color: "var(--text-2)", marginBottom: 32, fontSize: 14 }}>Manage your account details and avatar</p>
+    <div style={{ maxWidth: 600 }}>
+      <h1 style={{ fontSize: 40, marginBottom: "var(--s2)" }}>Profile</h1>
+      <p style={{ color: "var(--text-2)", marginBottom: "var(--s6)" }}>This is how you appear to teachers and on rankings.</p>
+      {error && <div style={{ marginBottom: "var(--s5)" }}><ErrorState message={error} /></div>}
 
-      {success && (
-        <div style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 10, padding: "12px 16px", color: "var(--green)", fontSize: 14, marginBottom: 20 }}>
-          ✓ {success}
+      <div className="flex items-center gap-5" style={{ gap: "var(--s5)", paddingBottom: "var(--s6)", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ width: 88, height: 88, borderRadius: "var(--radius)", overflow: "hidden", background: "var(--accent-bg)", display: "grid", placeItems: "center", color: "var(--accent)", fontSize: 32, fontWeight: 700, position: "relative" }}>
+          {profile.avatarUrl ? <img src={profile.avatarUrl} alt="Your photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (profile.displayName || "?").charAt(0).toUpperCase()}
+          {photoBusy && <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.7)", display: "grid", placeItems: "center" }}><Loader /></div>}
         </div>
-      )}
-      {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "12px 16px", color: "var(--red)", fontSize: 14, marginBottom: 20 }}>
-          {error}
-        </div>
-      )}
-
-      <div className="card" style={{ padding: 32, marginBottom: 24 }}>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 24 }}>Avatar</h2>
-        <div className="flex items-center gap-6">
-          <div style={{ width: 80, height: 80, borderRadius: "50%", border: "2px solid var(--border)", overflow: "hidden", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {profile?.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.target.style.display = "none"; }} />
-            ) : (
-              <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 28, color: "var(--accent-2)" }}>
-                {profile?.displayName?.charAt(0)?.toUpperCase() || "?"}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <input type="file" accept="image/*" ref={fileRef} onChange={handleAvatarUpload} style={{ display: "none" }} />
-            <button className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              {uploading ? <Loader size="sm" /> : "Upload photo"}
-            </button>
-            <button className="btn btn-danger btn-sm" onClick={handleDeleteAvatar} disabled={uploading}>Remove</button>
-          </div>
+        <div className="flex gap-3">
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={pick} />
+          <button className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()} disabled={photoBusy}>Change photo</button>
+          <button className="btn btn-danger btn-sm" onClick={() => photo(deleteAvatar)} disabled={photoBusy}>Remove</button>
         </div>
       </div>
 
-      <div className="card" style={{ padding: 32 }}>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 24 }}>Account Details</h2>
-        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div>
-            <label className="input-label">Display Name</label>
-            <input className="input" type="text" placeholder="Your name"
-              value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} />
-          </div>
-          <div>
-            <label className="input-label">Bio</label>
-            <textarea
-              className="input"
-              rows={3}
-              placeholder="Tell us a bit about yourself..."
-              value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              style={{ resize: "vertical", minHeight: 80 }}
-            />
-          </div>
-
-          <div style={{ padding: "14px 16px", background: "var(--bg-2)", borderRadius: 10, border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 4 }}>User ID</div>
-            <div style={{ fontSize: 12, fontFamily: "monospace", color: "var(--text-2)", wordBreak: "break-all" }}>{profile?.userId || "—"}</div>
-          </div>
-
-          <button type="submit" className="btn btn-primary" style={{ alignSelf: "flex-start" }} disabled={saving}>
-            {saving ? <Loader size="sm" /> : "Save Changes"}
-          </button>
-        </form>
-      </div>
+      <form onSubmit={save} noValidate style={{ display: "grid", gap: "var(--s5)", paddingTop: "var(--s6)" }}>
+        <div><label className="input-label" htmlFor="dn">Display name</label><input id="dn" className="input" value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} /></div>
+        <div><label className="input-label" htmlFor="bio">About you</label><textarea id="bio" className="input" rows={3} placeholder="A line or two about you" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
+        <div className="flex items-center gap-4">
+          <button className="btn btn-primary" disabled={saving}>{saving ? <Loader size="sm" /> : "Save changes"}</button>
+          {saved && <span role="status" className="flex items-center gap-2" style={{ color: "var(--green)", animation: "fadeUp .2s" }}><Icon name="check" size={16} />Saved</span>}
+        </div>
+        <p style={{ fontSize: 13, color: "var(--text-3)", wordBreak: "break-all" }}>Account ID: {profile.userId}</p>
+      </form>
     </div>
   );
 }

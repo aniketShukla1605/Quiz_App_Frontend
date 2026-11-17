@@ -34,7 +34,6 @@ export default function LandingPage() {
               <Link to="/register?role=STUDENT" className="btn btn-ghost btn-lg">Take a quiz</Link>
             </div>
           </div>
-          {/* Add public/photos/hero.jpg (e.g. a classroom photo from unsplash.com) */}
           <img className="photo rise" style={{ "--i": 3, aspectRatio: "4/5" }} src="/photos/hero.jpg" alt="Students working at laptops in a bright classroom" />
         </section>
 

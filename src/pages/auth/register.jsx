@@ -108,7 +108,6 @@ export default function RegisterPage() {
           </>
         )}
       </div>
-      {/* Add public/photos/register.jpg */}
       <img className="photo" src="/photos/register.jpg" alt="Students collaborating around a table" style={{ height: "100vh", borderRadius: 0 }} />
     </main>
   );

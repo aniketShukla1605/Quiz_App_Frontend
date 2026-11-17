@@ -7,7 +7,7 @@ export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
-  useEffect(() => { setOpen(false); }, [pathname]);          // close drawer after navigating
+  useEffect(() => { setOpen(false); }, [pathname]);          
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);

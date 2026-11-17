@@ -1,108 +1,86 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMyScoreSummary } from "../../services/resultService";
 import { getHistory } from "../../services/profileService";
+import { Skeleton } from "../../components/common/Loader";
+import { EmptyState, ErrorState } from "../../components/common/States";
+import Icon from "../../components/common/Icon";
+import { explain } from "../../utils/errors";
 
-function StatCard({ label, value, sub, color, icon }) {
-  return (
-    <div className="stat-card" style={{ borderLeft: `3px solid ${color}` }}>
-      <div className="flex items-center justify-between mb-2">
-        <span style={{ fontSize: 13, color: "var(--text-3)", fontFamily: "Syne, sans-serif", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
-        <span style={{ fontSize: 20 }}>{icon}</span>
-      </div>
-      <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 32, color: "var(--text)", lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-}
+const greet = () => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; };
 
 export default function StudentDashboard() {
   const { profile } = useAuth();
   const [summary, setSummary] = useState(null);
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("loading");
+  const [error, setError] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setStatus("loading");
     Promise.all([getMyScoreSummary(), getHistory()])
-      .then(([sRes, hRes]) => {
-        setSummary(sRes.data);
-        setHistory(hRes.data?.slice(0, 5) || []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then(([s, h]) => { setSummary(s.data); setHistory((h.data || []).slice(0, 5)); setStatus("ready"); })
+      .catch((e) => { setError(explain(e, "load your overview")); setStatus("error"); });
   }, []);
+  useEffect(() => { load(); }, [load]);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const stats = [
+    ["Quizzes taken", summary?.quizzesAttempted ?? 0],
+    ["Average score", `${Math.round(summary?.averagePercentage ?? 0)}%`],
+    ["Best score", `${Math.round(summary?.bestPercentage ?? 0)}%`],
+    ["Points earned", `${summary?.totalScore ?? 0} of ${summary?.totalMaxScore ?? 0}`],
+  ];
 
   return (
-    <div style={{ animation: "fadeUp 0.4s ease" }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div>
+      <div className="flex justify-between items-end flex-wrap gap-4" style={{ marginBottom: "var(--s7)" }}>
         <div>
-          <p style={{ color: "var(--text-3)", fontSize: 14, marginBottom: 4 }}>{greeting} </p>
-          <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 32, letterSpacing: "-0.02em" }}>
-            {profile?.displayName || "Student"}
-          </h1>
+          <p style={{ color: "var(--text-2)" }}>{greet()}</p>
+          <h1 style={{ fontSize: 44 }}>{profile?.displayName || "there"}</h1>
         </div>
-        <Link to="/student/quizzes" className="btn btn-primary">
-          Take a Quiz →
-        </Link>
+        <Link to="/student/quizzes" className="btn btn-primary btn-lg">Take a quiz <Icon name="arrow" size={18} /></Link>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Quizzes Done" value={loading ? "—" : summary?.quizzesAttempted ?? 0} icon="📝" color="var(--accent)" />
-        <StatCard label="Avg Score" value={loading ? "—" : `${summary?.averagePercentage ?? 0}%`} sub="across all attempts" icon="📊" color="var(--cyan)" />
-        <StatCard label="Best Score" value={loading ? "—" : `${summary?.bestPercentage ?? 0}%`} sub="your highest" icon="🏆" color="var(--amber)" />
-        <StatCard label="Total Points" value={loading ? "—" : `${summary?.totalScore ?? 0}/${summary?.totalMaxScore ?? 0}`} icon="⭐" color="var(--green)" />
-      </div>
+      {status === "error" && <ErrorState message={error} onRetry={load} />}
+      {status === "loading" && <Skeleton count={4} h={56} />}
 
-      {/* Quick actions */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14, marginBottom: 32 }}>
-        {[
-          { label: "Browse Quizzes", desc: "Find and take quizzes", href: "/student/quizzes", icon: "🎯" },
-          { label: "View History", desc: "All past attempts", href: "/student/history", icon: "📋" },
-          { label: "Analytics", desc: "Your performance data", href: "/student/analytics", icon: "📈" },
-          { label: "Profile", desc: "Update your info", href: "/profile", icon: "👤" },
-        ].map((item) => (
-          <Link key={item.href} to={item.href} className="card card-interactive" style={{ padding: 20, textDecoration: "none", display: "block" }}>
-            <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{item.label}</div>
-            <div style={{ fontSize: 12, color: "var(--text-3)" }}>{item.desc}</div>
-          </Link>
-        ))}
-      </div>
-
-      {/* Recent attempts */}
-      <div className="card" style={{ padding: 24 }}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 16 }}>Recent Attempts</h2>
-          <Link to="/student/history" style={{ fontSize: 13, color: "var(--accent-2)", textDecoration: "none" }}>View all →</Link>
-        </div>
-        {loading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 48 }} />)}
-          </div>
-        ) : history.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "32px 0", color: "var(--text-3)", fontSize: 14 }}>
-            No quiz attempts yet. <Link to="/student/quizzes" style={{ color: "var(--accent-2)" }}>Take your first quiz →</Link>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {history.map((h) => (
-              <div key={h.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: "var(--bg-2)", borderRadius: 10, border: "1px solid var(--border)" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>Quiz #{h.quizId}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-3)" }}>{new Date(h.attemptedAt).toLocaleDateString()}</div>
-                </div>
-                <span className="badge badge-accent">{h.resultPercentage}</span>
+      {status === "ready" && (
+        <>
+          <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "var(--s6)", paddingBottom: "var(--s7)", borderBottom: "1px solid var(--border)" }}>
+            {stats.map(([k, v], i) => (
+              <div key={k} className="rise" style={{ "--i": i }}>
+                <dd style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 40, letterSpacing: "-.04em", lineHeight: 1 }}>{v}</dd>
+                <dt style={{ color: "var(--text-2)", fontSize: 14, marginTop: "var(--s2)" }}>{k}</dt>
               </div>
             ))}
-          </div>
-        )}
-      </div>
+          </dl>
+
+          <section style={{ marginTop: "var(--s7)" }}>
+            <div className="flex justify-between items-center" style={{ marginBottom: "var(--s4)" }}>
+              <h2 style={{ fontSize: 24 }}>Recent attempts</h2>
+              {history.length > 0 && <Link to="/student/history" style={{ fontWeight: 600 }}>See all</Link>}
+            </div>
+            {history.length === 0 ? (
+              <EmptyState icon="target" title="Your scores will show up here"
+                body="Take your first quiz and this page will start tracking your average and best result."
+                action={<Link to="/student/quizzes" className="btn btn-primary">Enter a quiz ID</Link>} />
+            ) : (
+              <ul style={{ listStyle: "none" }}>
+                {history.map((h) => (
+                  <li key={h.id} className="flex justify-between items-center" style={{ padding: "var(--s4) 0", borderTop: "1px solid var(--border)" }}>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>Quiz {h.quizId}</div>
+                      <div style={{ fontSize: 14, color: "var(--text-3)" }}>{new Date(h.attemptedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</div>
+                    </div>
+                    <span className="badge badge-accent">{h.resultPercentage}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

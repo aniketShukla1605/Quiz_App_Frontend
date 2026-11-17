@@ -66,7 +66,6 @@ export default function LoginPage() {
         </div>
         <p style={{ marginTop: "var(--s6)", color: "var(--text-2)" }}>New here? <Link to="/register" style={{ fontWeight: 600 }}>Create an account</Link></p>
       </div>
-      {/* Add public/photos/login.jpg */}
       <img className="photo" src="/photos/login.jpg" alt="A teacher helping a student at a desk" style={{ height: "100vh", borderRadius: 0 }} />
     </main>
   );
